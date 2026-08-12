@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 type Summary = {
   total: number; passed: number; pass_rate: number; avg_faithfulness: number;
@@ -101,7 +102,10 @@ export default function App() {
       {selected && <article className="detail">
         <div className="detail-head"><div><p className="eyebrow">{selected.difficulty} · {selected.id}</p><h2>{selected.question}</h2></div><span className={selected.passed ? "badge success" : "badge danger"}>{selected.passed ? "Passed" : selected.failure_type}</span></div>
         <div className="score-grid">{[["Recall", selected.context_recall], ["Precision", selected.context_precision], ["Faithful", selected.faithfulness], ["Relevant", selected.relevance], ["Complete", selected.completeness], ["Overall", selected.overall]].map(([label, value]) => <div key={label as string}><span>{label}</span><strong>{score(value as number)}</strong></div>)}</div>
-        <section className="answer-grid"><div><p className="label">ACTUAL ANSWER</p><p>{selected.actual_answer}</p></div><div><p className="label">EXPECTED ANSWER</p><p>{selected.expected_answer}</p></div></section>
+        <section className="answer-grid">
+          <div><p className="label">ACTUAL ANSWER</p><div className="markdown"><ReactMarkdown>{selected.actual_answer}</ReactMarkdown></div></div>
+          <div><p className="label">EXPECTED ANSWER</p><div className="markdown"><ReactMarkdown>{selected.expected_answer}</ReactMarkdown></div></div>
+        </section>
         <section className="trace"><div className="section-title"><p className="label">RETRIEVAL TRACE</p><span>{selected.retrieved_contexts.length} chunks</span></div>
           {selected.retrieved_contexts.map((context, index) => <details key={`${context.chunk_id}-${index}`} open={index === 0}><summary><b>#{index + 1}</b><span>{context.chunk_id || context.source_doc}</span><em>{context.score?.toFixed(3)}</em></summary><p>{context.text}</p></details>)}
         </section>
