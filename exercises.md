@@ -287,19 +287,34 @@ verbosity bias và self-preference bằng cách nào?
 Chỉ làm sau khi hoàn thành 3.1–3.3. Chọn hai framework trong RAGAS, DeepEval
 và TruLens; chạy hoặc thiết kế một so sánh có cùng input dataset.
 
-| Tiêu chí | Framework 1: ____ | Framework 2: ____ |
+| Tiêu chí | Framework 1: RAGAS | Framework 2: DeepEval |
 |---|---|---|
-| Setup complexity | | |
-| Metrics available | | |
-| CI/CD integration | | |
-| Kết quả trên cùng dataset | | |
-| Insight rút ra | | |
+| Setup complexity | Chuyển 20 records thành `EvaluationDataset` với single-turn samples chứa user input, response, retrieved contexts và reference. Cần cấu hình evaluator LLM hoặc embeddings cho các metric model-based. Phù hợp khi mục tiêu chính là đo RAG pipeline theo batch. | Chuyển cùng 20 records thành `LLMTestCase` hoặc `Golden`, khai báo metrics và threshold. Setup nhiều assertion hơn nhưng tự nhiên với cấu trúc test hiện tại vì DeepEval tích hợp trực tiếp với pytest. |
+| Metrics available | Tài liệu chính thức liệt kê Context Precision, Context Recall, Response Relevancy, Faithfulness, Noise Sensitivity và các metrics cho RAG, agents, SQL, tool use cùng custom metrics. | Tài liệu chính thức mô tả hơn 30 metrics, gồm Answer Relevancy và các LLM-based metrics; hỗ trợ end-to-end, component-level, single-turn và multi-turn evaluation. Có thể dùng G-Eval cho rubric Student Services. |
+| CI/CD integration | Có thể gọi evaluation trong script CI, lưu result và tự áp threshold/regression gate. Với lab này cần thêm adapter từ JSON và assertion code. | Pytest-native qua `assert_test()` và `deepeval test run`; cùng test file có thể chạy local hoặc trong CI workflow. Phù hợp hơn với quality gate theo từng case. |
+| Kết quả trên cùng dataset | Baseline đã chạy trên đúng 20 cases bằng RAGAS-style deterministic heuristics: pass rate 70.0%, Context Recall 0.824, Context Precision 0.940, Faithfulness 0.648, Relevance 0.627 và Completeness 0.629. | Chưa chạy package DeepEval vì không nằm trong `requirements.txt`. Thiết kế đối chiếu dùng nguyên 20 questions, actual answers, retrieval traces và references, với Answer Relevancy, Faithfulness và G-Eval rubric. Không báo score giả khi chưa chạy evaluator LLM. |
+| Insight rút ra | Mạnh trong chẩn đoán retrieval và grounding. Deterministic heuristic của lab nhanh, rẻ, tái lập nhưng không hiểu safe refusal hoặc paraphrase. | Mạnh trong test-level assertions, CI và rubric semantics. LLM judge có thể đánh giá A01/A02 hợp lý hơn lexical overlap nhưng tốn model calls, có variability và cần calibration chống bias. |
 
 - Scores có nhất quán không?
 - Framework nào strict hơn và vì sao?
 - Hai framework có tìm ra cùng failure cases không?
 
-> *Phân tích:*
+> Hai framework không nên được kỳ vọng cho score số học giống nhau vì metric
+> implementation và judge khác nhau. RAGAS-style baseline nghiêm khắc với token
+> mismatch: A01 và A02 là safe refusals nhưng nằm trong ba case thấp nhất. Một
+> DeepEval G-Eval rubric có safety hard gate dự kiến nhận ra compliance tốt hơn,
+> trong khi RAGAS vẫn hữu ích để chỉ ra retrieval miss rõ ràng của A01. Vì vậy
+> hai framework có thể cùng phát hiện A01 nhưng vì lý do khác nhau; chúng có thể
+> bất đồng ở A02 và A03, nơi lexical overlap phạt generic refusal hoặc paraphrase.
+> Với Student Services, lựa chọn hợp lý là dùng RAGAS cho retrieval/grounding
+> diagnostics và DeepEval cho semantic, safety và CI assertions, sau đó human
+> review các case hai framework bất đồng. So sánh này là thiết kế trên cùng input;
+> chỉ cột RAGAS-style có kết quả đã chạy trong repo.
+>
+> Nguồn chính thức được tham khảo: [RAGAS Evaluation Dataset](https://docs.ragas.io/en/stable/concepts/components/eval_dataset/),
+> [RAGAS available metrics](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/),
+> [DeepEval introduction](https://deepeval.com/docs/evaluation-introduction) và
+> [DeepEval CI/CD unit testing](https://deepeval.com/docs/evaluation-unit-testing-in-ci-cd).
 
 ### Exercise 3.5 — Retrieval Reranking (Bonus +5)
 
@@ -314,20 +329,30 @@ thay đổi Context Recall hay không.
 
 | ID | Recall before | Recall after | Precision before | Precision after | Delta Precision |
 |---|---:|---:|---:|---:|---:|
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| | | | | | |
-| **Avg** | | | | | |
+| E02 | 1.000 | 1.000 | 0.887 | 1.000 | +0.113 |
+| E03 | 0.967 | 0.967 | 1.000 | 1.000 | +0.000 |
+| M04 | 0.857 | 0.857 | 1.000 | 1.000 | +0.000 |
+| H02 | 0.717 | 0.717 | 1.000 | 1.000 | +0.000 |
+| A03 | 0.595 | 0.595 | 1.000 | 0.917 | -0.083 |
+| **Avg** | **0.827** | **0.827** | **0.978** | **0.983** | **+0.006** |
 
 **Tại sao Recall dự kiến không đổi?**
 
-> *Câu trả lời:*
+> Context Recall đo coverage trên union token của toàn bộ chunks. Reranker chỉ
+> thay đổi thứ tự, không thêm, xóa hoặc sửa chunk, nên union giữ nguyên và Recall
+> của cả năm traces không đổi. Phép kiểm tra trong script cũng xác nhận list sau
+> rerank có cùng độ dài và cùng multiset nội dung với list ban đầu.
 
 **Khi nào reranking không đủ và cần sửa retriever/query/chunking?**
 
-> *Câu trả lời:*
+> Reranking không đủ khi relevant evidence không nằm trong tập retrieved ban đầu,
+> điển hình A01 có Recall 0.088 và Precision 0.000. Khi đó cần intent routing,
+> query expansion hoặc sửa chunking/retriever. Reranking lexical cũng có thể làm
+> xấu ranking khi overlap với question không phản ánh relevance với expected
+> evidence: A03 giảm Precision 0.083. Trường hợp này cần multi-query retrieval,
+> semantic or cross-encoder reranker và validation trên nhiều slices. Kết quả
+> trung bình chỉ tăng 0.006 vì bốn trên năm baseline Precision đã rất cao; không
+> nên diễn giải đây là cải thiện lớn.
 
 ---
 
@@ -341,11 +366,11 @@ Hoàn thành `reflection.md` bằng kết quả thật từ Exercise 3.2.
 
 Hoàn thành kiểm tra cuối trong khoảng 11:50–12:00.
 
-- [ ] Tất cả required tests pass.
-- [ ] `golden_dataset.json` validate thành công.
-- [ ] Exercise 3.1 hoàn thành trong file JSON và bảng kết quả phía trên.
-- [ ] Exercise 3.2 có năm metrics, aggregate report và ba cases thấp nhất.
-- [ ] Exercise 3.3 có rubric 1–5 và bias controls.
-- [ ] `reflection.md` có ba failure analyses và regression strategy.
+- [x] Tất cả required tests pass.
+- [x] `golden_dataset.json` validate thành công.
+- [x] Exercise 3.1 hoàn thành trong file JSON và bảng kết quả phía trên.
+- [x] Exercise 3.2 có năm metrics, aggregate report và ba cases thấp nhất.
+- [x] Exercise 3.3 có rubric 1–5 và bias controls.
+- [x] `reflection.md` có ba failure analyses và regression strategy.
 - [ ] Đã copy `template.py` thành `solution/solution.py`.
-- [ ] Exercise 3.4 và 3.5 chỉ làm nếu chọn bonus.
+- [x] Exercise 3.4 và 3.5 đã hoàn thành.
