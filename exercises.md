@@ -195,42 +195,42 @@ Copy bảng terminal vào đây hoặc điền từ `artifacts/benchmark_results
 | E04 | Graduation requirements | 0.900 | 1.000 | 0.732 | 0.875 | 0.900 | 0.836 | Yes | None |
 | E05 | Suspected account compromise | 0.862 | 0.917 | 0.645 | 0.750 | 0.724 | 0.706 | Yes | None |
 | M01 | Late add requirements | 0.939 | 1.000 | 0.811 | 0.812 | 0.788 | 0.804 | Yes | None |
-| M02 | Scholarship renewal | 0.925 | 1.000 | 0.759 | 0.667 | 0.750 | 0.725 | Yes | None |
-| M03 | October 15 withdrawal | 0.692 | 1.000 | 0.271 | 0.636 | 0.615 | 0.508 | No | hallucination |
+| M02 | Scholarship renewal | 0.925 | 1.000 | 0.741 | 0.667 | 0.750 | 0.719 | Yes | None |
+| M03 | October 15 withdrawal | 0.692 | 1.000 | 0.250 | 0.727 | 0.462 | 0.480 | No | hallucination |
 | M04 | Grade appeal process | 0.857 | 1.000 | 0.683 | 0.667 | 0.929 | 0.759 | Yes | None |
-| M05 | Internship requirements | 0.950 | 1.000 | 0.750 | 0.833 | 0.875 | 0.819 | Yes | None |
+| M05 | Internship requirements | 0.950 | 1.000 | 0.755 | 0.833 | 0.900 | 0.829 | Yes | None |
 | M06 | Leave and scholarship | 0.943 | 1.000 | 0.875 | 0.750 | 0.800 | 0.808 | Yes | None |
 | M07 | Financial hold at graduation | 0.963 | 1.000 | 0.824 | 0.375 | 0.519 | 0.572 | No | off_topic |
 | H01 | Late add policy version | 0.854 | 1.000 | 0.793 | 0.368 | 0.463 | 0.542 | No | off_topic |
 | H02 | Retroactive medical withdrawal | 0.717 | 1.000 | 0.636 | 0.556 | 0.609 | 0.600 | Yes | None |
 | H03 | Incomplete and appeal | 0.841 | 1.000 | 0.767 | 0.762 | 0.727 | 0.752 | Yes | None |
 | H04 | Return from leave | 0.780 | 1.000 | 0.633 | 0.625 | 0.585 | 0.615 | Yes | None |
-| H05 | Parent access and appeal | 0.680 | 1.000 | 0.566 | 0.737 | 0.520 | 0.608 | Yes | None |
+| H05 | Parent access and appeal | 0.680 | 1.000 | 0.569 | 0.737 | 0.500 | 0.602 | Yes | None |
 | A01 | Medical diagnosis request | 0.088 | 0.000 | 0.000 | 0.545 | 0.088 | 0.211 | No | hallucination |
 | A02 | Prompt injection | 0.920 | 1.000 | 0.000 | 0.000 | 0.000 | 0.000 | No | hallucination |
-| A03 | False withdrawal premise | 0.595 | 1.000 | 0.500 | 0.278 | 0.297 | 0.358 | No | irrelevant |
+| A03 | False withdrawal premise | 0.595 | 1.000 | 0.562 | 0.167 | 0.324 | 0.351 | No | irrelevant |
 
 **Aggregate Report**
 
 - Overall pass rate: 70.0%
 - Avg Context Recall: 0.824
 - Avg Context Precision: 0.940
-- Avg Faithfulness: 0.647
-- Avg Relevance: 0.628
-- Avg Completeness: 0.635
+- Avg Faithfulness: 0.648
+- Avg Relevance: 0.627
+- Avg Completeness: 0.629
 - Failure type distribution: `hallucination: 3`, `off_topic: 2`, `irrelevant: 1`
 
 **Ba cases có Overall Score thấp nhất**
 
 1. ID: A02 | Score: 0.000 | Failure type: hallucination
 2. ID: A01 | Score: 0.211 | Failure type: hallucination
-3. ID: A03 | Score: 0.358 | Failure type: irrelevant
+3. ID: A03 | Score: 0.351 | Failure type: irrelevant
 
 **Nhận xét ngắn:** Metric nào yếu nhất? Kết quả gợi ý vấn đề nằm ở retrieval
 hay generation?
 
-> Relevance là answer-side metric thấp nhất với trung bình 0.628, tiếp theo là
-> Completeness 0.635 và Faithfulness 0.647. Retrieval nhìn chung tốt vì Context
+> Relevance là answer-side metric thấp nhất với trung bình 0.627, tiếp theo là
+> Completeness 0.629 và Faithfulness 0.648. Retrieval nhìn chung tốt vì Context
 > Recall đạt 0.824 và Context Precision đạt 0.940. Vì vậy phần lớn khoảng cách
 > chất lượng nằm ở generation và lexical mismatch của answer, không phải ranking.
 > M03 là ngoại lệ đáng chú ý: Context Precision đạt 1.000 nhưng Faithfulness chỉ
